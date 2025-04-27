@@ -1,6 +1,59 @@
 import { sales, clients, products } from "../data/db.js";
 import { v4 as uuidv4 } from "uuid";
 
+// Paginação de vendas
+
+export const listSales = (req, res) => {
+  const {
+    page = 1,
+    size = 10,
+    orderBy = "id",
+    order = "asc",
+    filter,
+  } = req.query;
+
+  let result = [...sales];
+
+  if (filter) {
+    const term = filter.toString().toLowerCase();
+    result = result.filter(
+      (s) =>
+        s.clientId.toString().includes(term) ||
+        s.productId.toString().includes(term)
+    );
+  }
+
+  result.sort((a, b) => {
+    const campoA = a[orderBy];
+    const campoB = b[orderBy];
+
+    if (typeof campoA === "string") {
+      return order === "asc"
+        ? campoA.localeCompare(campoB)
+        : campoB.localeCompare(campoA);
+    } else {
+      return order === "asc" ? campoA - campoB : campoB - campoA;
+    }
+  });
+
+  const sizePage = parseInt(size);
+  const atualPage = parseInt(page);
+  const totalItens = result.length;
+  const totalPages = Math.ceil(totalItens / sizePage);
+
+  const initiation = (atualPage - 1) * sizePage;
+  const end = initiation + sizePage;
+  const paginated = result.slice(initiation, end);
+
+  res.json({
+    page: atualPage,
+    size: sizePage,
+    totalPages,
+    totalItens,
+    data: paginated,
+  });
+};
+
 export const getAllSales = (req, res) => {
   res.json(sales);
 };

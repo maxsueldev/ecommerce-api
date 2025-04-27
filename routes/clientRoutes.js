@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  listClients,
   getAllClients,
   getClientById,
   createClient,
@@ -11,6 +12,7 @@ import { authenticate, authorize } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.get("/", getAllClients);
+router.get("/list", listClients);
 router.get("/:id", getClientById);
 router.post("/", authenticate, authorize(["admin"]), createClient);
 router.put("/:id", authenticate, authorize(["admin"]), updateClient);

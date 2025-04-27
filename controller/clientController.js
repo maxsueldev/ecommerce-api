@@ -1,6 +1,57 @@
 import { clients } from "../data/db.js";
 import { v4 as uuidv4 } from "uuid";
 
+export const listClients = (req, res) => {
+  const {
+    page = 1,
+    size = 10,
+    orderBy = "id",
+    order = "asc",
+    filter,
+  } = req.query;
+
+  let result = [...clients];
+
+  if (filter) {
+    const term = filter.toLowerCase();
+    result = result.filter(
+      (c) =>
+        c.name.toLowerCase().includes(term) ||
+        c.email.toLowerCase().includes(term)
+    );
+  }
+
+  result.sort((a, b) => {
+    const campoA = a[orderBy];
+    const campoB = b[orderBy];
+
+    if (typeof campoA === "string") {
+      return order === "asc"
+        ? campoA.localeCompare(campoB)
+        : campoB.localeCompare(campoA);
+    } else {
+      return order === "asc" ? campoA - campoB : campoB - campoA;
+    }
+  });
+
+  const sizePage = parseInt(size);
+  const atualPage = parseInt(page);
+  const totalItens = result.length;
+  const totalPages = Math.ceil(totalItens / sizePage);
+
+  const initiation = (atualPage - 1) * sizePage;
+  const end = initiation + sizePage;
+  const paginated = result.slice(initiation, end);
+
+  res.json({
+    page: atualPage,
+    size: sizePage,
+    totalPages,
+    totalItens,
+    data: paginated,
+  });
+};
+
 export const getAllClients = (req, res) => {
   res.json(clients);
 };
