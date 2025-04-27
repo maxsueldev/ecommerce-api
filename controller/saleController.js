@@ -64,6 +64,42 @@ export const getSaleById = (req, res) => {
   res.json(sale);
 };
 
+// Análise de vendas
+
+export const getAnalysis = (req, res) => {
+  const { initiation, end } = req.query;
+  const initiationDate = new Date(initiation);
+  const endDate = new Date(end);
+
+  const filteredSales = sales.filter((s) => {
+    const saleDate = new Date(s.date);
+    return (saleDate) => initiationDate && saleDate <= endDate;
+  });
+
+  const totalSales = filteredSales.length;
+  let incomeTotal = 0;
+  const incomePerProduct = {};
+
+  filteredSales.forEach((sale) => {
+    sale.itens.forEach((item) => {
+      const totalItem = item.quantity * item.price;
+      incomeTotal += totalItem;
+
+      if (!incomePerProduct[item.name]) {
+        incomePerProduct[item.name] = 0;
+      }
+
+      incomePerProduct[item.name] += totalItem;
+    });
+  });
+
+  res.json({
+    totalSales,
+    incomeTotal,
+    incomePerProduct,
+  });
+};
+
 export const createSale = (req, res) => {
   const { clientId, productId, quantity } = req.body;
 
